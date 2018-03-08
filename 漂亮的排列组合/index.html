@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="layui.css"/>
+		<style type="text/css">
+			li {
+				list-style: none;
+			}
+			
+			.clearfix {
+				zoom: 1;
+			}
+			
+			.clearfix:after {
+				clear: both;
+				content: '.';
+				display: block;
+				width: 0;
+				height: 0;
+				visibility: hidden;
+			}
+			
+			#app {
+				margin: 30px;
+			}
+			
+			.format_box {
+				border: 1px solid #e6e6e6;
+				border-radius: 3px;
+				height: 52px;
+				box-sizing: border-box;
+				padding-top: 8px;
+				padding-left: 5px;
+			}
+			
+			.format_box:hover {
+				border-color: #d2d2d2;
+			}
+			
+			.title {
+				line-height: 40px;
+				border: 1px solid #ddd;
+				height: 40px;
+				border-top: none;
+				border-bottom: none;
+			}
+			
+			.unitlist {
+				float: left;
+			}
+			
+			.unitlist li {
+				float: left;
+				position: relative;
+				margin-right: 15px;
+			}
+			
+			.unit {
+				padding: 7px 15px;
+				background: #5FB878;
+				color: white;
+				border-radius: 3px;
+				cursor: default;
+			}
+			
+			.delete {
+				position: absolute;
+				top: -8px;
+				right: -8px;
+				color: white;
+				width: 18px;
+				height: 18px;
+				border-radius: 100%;
+				border: 2px solid #fff;
+				background: #5FB878;
+				text-align: center;
+				line-height: 18px;
+				cursor: pointer;
+			}
+			
+			li:hover .delete {
+				background: #f00;
+			}
+			
+			.wjl_input {
+				border: none;
+				outline: none;
+				height: 34px;
+				background: transparent;
+			}
+			
+			.unitTableName {
+				width: 205px;
+				border: 1px solid #e6e6e6;
+				text-indent: 20px;
+				margin: 0 10px;
+				border-radius: 3px;
+				height: 46px;
+			}
+			/*.unitTableName:hover{border-color: #5FB878;}*/
+			
+			.green {
+				border-color: #5FB878;
+			}
+			
+			.wjl_tr:hover .wjl_input {
+				background: white;
+				border-color: #d2d2d2;
+			}
+			
+			.wjl_tr:hover .format_box {
+				background: white;
+				border-color: #d2d2d2;
+			}
+			
+			.wjl_input:hover {
+				background: white;
+				border-color: #d2d2d2;
+			}
+			
+			.wjl_input:disabled {
+				color: #ccc;
+				cursor: not-allowed !important;
+			}
+			
+			.wjl_ml20 {
+				margin-left: 20px;
+			}
+			
+			.wjl_mt0 {
+				margin-top: 0;
+			}
+			
+			.wjl_cur {
+				cursor: pointer;
+			}
+			
+			.wjl_operate {
+				cursor: pointer;
+				color: #999;
+				font-weight: bold;
+			}
+			
+			.wjl_cur:hover {
+				opacity: .8;
+			}
+			
+			.wjl_prompt {
+				display: none;
+				padding: 12px 15px;
+				text-align: center;
+				background-color: rgba(0, 0, 0, .6);
+				color: #ffff;
+				border: none;
+				min-width: 100px;
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				z-index: 9999;
+				transform: scale(.8);
+				-moz-transition: all 1.2s linear;
+				-ms-transition: all 1.2s linear;
+				-webkit-transition: all 1.2s linear;
+				-o-transition: all 1.2s linear;
+				transition: all 1.2s linear;
+			}
+			
+			.wjl_prompt.active {
+				transform: scale(1);
+				display: block;
+			}
+			
+			.wjl_this {
+				background: #13C19F;
+				color: white;
+			}
+			
+			.wjl_mr5 {
+				margin-right: 5px;
+			}
+			/*弹出层遮罩层*/
+			
+			.wjl_shade {
+				position: fixed;
+				left: 0;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				background: transparent;
+				width: 100%;
+				height: 100%;
+				z-index: 9999;
+				background: rgba(0, 0, 0, .6);
+			}
+			/*弹出层*/
+			
+			.wjl_popups {
+				position: absolute;
+				left: 50%;
+				top: 50%;
+			}
+		</style>
+	</head>
+
+	<body>
+
+		<!--产品规格-->
+		<div>
+			<fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+				<legend>产品规格</legend>
+			</fieldset>
+			<div id="app">
+				<div>
+					<div class="layui-unselect layui-form-checkbox" :class="{'layui-form-checked':setMulSpcStatus}" lay-skin="primary" style="margin-bottom: 15px;">
+						<span>设置产品多规格</span>
+						<i class="layui-icon wjl_icon" @click="setMulSpc()">&#xe605;</i>
+					</div>
+					<table class="layui-table" style="margin-bottom: 0;" v-if="setMulSpcStatus">
+						<thead>
+							<tr>
+								<th width="5%" style="text-align: center;">操作</th>
+								<th width="20%" style="text-align: center;">规格名称</th>
+								<th style="text-align: center;"><span>规格值(可使用键盘“Ctrl键”快速添加规格值)</span></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(item,index) in unitTableList" class="wjl_tr">
+								<td style="width: 70px;text-align: center;"><span class="wjl_operate" @click="deleteUnitTable(index)">—</span></td>
+								<td style="width: 200px;text-align: center;"><input class="unitTableName wjl_input" type="text" name="" id="" v-model="item.unitTableName" /></td>
+								<td style="padding: 8px 10px;">
+									<div class="format_box">
+										<ul class="clearfix unitlist">
+											<li v-for="(unitItem,index) in item.unitList">
+												<div class="unit">{{unitItem}}</div>
+												<span class="delete" v-on:click="deleteUnit(item.unitList,index)">x</span>
+											</li>
+										</ul>
+										<input class="wjl_input" type="text" name="specification_name[]" id="" v-model="item.unit" @keyup.17="addUnit(item.unit,index)" @keyup.8="deleteLastUnit(index)" placeholder="" />
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<p class="title" v-if="setMulSpcStatus"><span class="wjl_ml20 wjl_mt0 wjl_cur" @click="addUnitTable" v-if="unitTableList.length<3"><i class="layui-icon wjl_mr5">&#xe654;</i>添加规格</span></p>
+					<table class="layui-table wjl_mt0">
+						<thead>
+							<tr style="font-weight: bold;">
+								<td style="width: 70px;text-align: center;"></td>
+								<td style="width: 100px;text-align: center;" v-for="(item,index) in unitTableList">{{item.unitTableName}}</td>
+								<td style="text-align: center;">商品编码</td>
+								<td style="text-align: center;">条形码</td>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(item,index) in groups" class="wjl_tr" @mouseenter="enter(index)" @mouseleave="leave(index)">
+								<td style="width: 5%;text-align: center;">
+									<span class="wjl_operate" v-if="showStatus==1&&delStus!=index&&delStusArray.indexOf(index)==-1">{{index+1}}</span>
+									<span class="wjl_operate" @click="disableUnit(item,index)" v-if="delStatus==1&&delStus==index">删除</span>
+									<span class="wjl_operate" @click="recoverUnit(item,index)" v-if="delStusArray.indexOf(index)!=-1">恢复</span>
+								</td>
+								<td style="width: 100px;text-align: center;" v-for="i in item.unitList">{{i}}</td>
+								<td style="width: 200px;padding: 0 20px;height: 60px;">
+									<input class="unitTableName wjl_input" type="text" name="code[]" :id="'produceCode'+index" v-model='item.produceCode' />
+								</td>
+								<td style="text-align: center;padding:0 2%;">
+									<input class="unitTableName wjl_input" type="text" name="shape_code[]" :id="'barCode'+index" v-model='item.barCode' style="display:block; width:98%;margin:auto;" />
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<script src="https://cdn.bootcss.com/jquery/3.2.0/jquery.min.js"></script>
+		<script src="https://cdn.bootcss.com/vue/2.5.9/vue.min.js"></script>
+		<script type="text/javascript">
+			var app = new Vue({
+				el: "#app",
+				data: {
+					unitTableList: [{ unitTableName: "规格1", unit: null, unitList: [] }], //添加规格的数组，默认规格1
+					addUnitTableStatus: true,
+					showStatus: 1, //生成的规格状态值  默认为1，删除为2， 恢复为3
+					setMulSpcStatus: false, //设置多规格的状态
+					delStatus: 0, //删除状态码
+					delStus: -1, //删除状态下标值
+					delStusArray: [], //将删除的一行规格的index下标存入该数组
+				},
+				methods: {
+					//设置多规格
+					setMulSpc: function() {
+						if(this.setMulSpcStatus == false) {
+							this.setMulSpcStatus = true;
+						} else {
+							this.setMulSpcStatus = false;
+						}
+					},
+					//添加规格单位
+					addUnit: function(unit, index) {
+						var me = this;
+						var saveunitListLine = {};
+						if($.trim(unit) != "" && this.unitTableList[index].unitList.indexOf(unit) == -1) {
+							me.unitTableList[index].unitList.push(unit);
+							me.unitTableList[index].unit = null;
+						} else {
+							me.unitTableList[index].unit = null;
+						}
+					},
+					//删除规格单位
+					deleteUnit: function(unitList, index) {
+						unitList.splice(index, 1);
+					},
+					//删除本行中最后一个规格单位
+					deleteLastUnit: function(index) {
+						var length = this.unitTableList[index].unitList.length - 1;
+						this.unitTableList[index].unitList.splice(length, 1);
+					},
+					//添加一行规格
+					addUnitTable: function() {
+						if(this.unitTableList.length == 3) {} else {
+							var unitTable = { unitTableName: "规格" + (this.unitTableList.length + 1), unit: null, unitList: [] }
+							this.unitTableList.push(unitTable);
+							this.unitTableShowList = this.groups;
+						}
+					},
+					//删除一行规格
+					deleteUnitTable: function(index) {
+						this.addUnitTableStatus = true;
+						if(this.unitTableList.length > 1) {
+							this.unitTableList.splice(index, 1);
+						} else {
+							$(".wjl_prompt").addClass("active");
+							setTimeout(function() {
+								$(".wjl_prompt").removeClass("active");
+							}, 1000)
+						}
+					},
+					//鼠标移入生成规格
+					enter: function(index) {
+						if(this.delStusArray.indexOf(index) == -1) {
+							this.delStatus = 1;
+							this.delStus = index;
+						} else {
+							this.delStatus = 1;
+							this.delStus = -1;
+						}
+					},
+					leave: function(index) {
+						if(this.delStusArray.indexOf(index) == -1) {
+							this.showStatus = 1;
+							this.delStus = -1;
+						} else {
+							this.showStatus = 1;
+							this.delStatus = -1;
+							this.delStus = -1;
+						}
+					},
+					//删除该行规格（实质为禁用）
+					disableUnit: function(item, index) {
+						item.existStatus = 0;
+						$('#produceCode' + index).attr("disabled", "disabled");
+						$('#barCode' + index).attr("disabled", "disabled");
+						this.delStusArray.push(index);
+						this.delStus = -1;
+					},
+					//恢复该行规格（实质为启用）
+					recoverUnit: function(item, index) {
+						item.existStatus = 1;
+						$('#produceCode' + index).attr("disabled", false);
+						$('#barCode' + index).attr("disabled", false);
+						var i = this.delStusArray.indexOf(index); //查找需要删除的值的位置
+						this.delStusArray.splice(i, 1);
+						this.delStus = index;
+						this.delStatus = 1;
+					}
+				},
+				computed: {
+					groups: function() {
+						var results = [];
+						var result = [];
+						if(this.unitTableList.length == 1 && this.unitTableList[0].unitList.length == 0) {
+							results.push({
+								unitList: "无",
+								produceCode: createCode(),
+								barCode: null,
+								existStatus: 1 //规格是否保存0不保存，1为保存
+							})
+							return results;
+						}
+						if(this.unitTableList.length == 2 && this.unitTableList[0].unitList.length == 0 && this.unitTableList[1].unitList.length == 0) {
+							results.push({
+								unitList: ["无", "无"],
+								produceCode: createCode(),
+								barCode: null,
+								existStatus: 1 //规格是否保存0不保存，1为保存
+							})
+							return results;
+						}
+						if(this.unitTableList.length == 3 && this.unitTableList[0].unitList.length == 0 && this.unitTableList[1].unitList.length == 0 && this.unitTableList[2].unitList.length == 0) {
+							results.push({
+								unitList: ["无", "无", "无"],
+								produceCode: createCode(),
+								barCode: null,
+								existStatus: 1 //规格是否保存0不保存，1为保存
+							})
+							return results;
+						}
+						if(this.unitTableList.length <= 0) {
+							return [];
+						}
+
+						function exchange(arr, depth) {
+							for(var i = 0; i < arr[depth]['unitList'].length; i++) {
+								result[depth] = arr[depth]['unitList'][i]
+								if(depth != arr.length - 1) {
+									exchange(arr, depth + 1)
+								} else {
+									results.push({
+										unitList: result.concat(),
+										produceCode: createCode(),
+										barCode: null,
+										existStatus: 1 //规格是否保存0不保存，1为保存
+									})
+								}
+							}
+						}
+						// 提取不为空的规格标签 记录为空的位置
+						var temp = []; //存储不为空的规格标签
+						var unsign = []; //记录为空的位置
+						this.unitTableList.forEach(function(spec, i) {
+							if(spec.unitList && spec.unitList.length > 0) {
+								temp.push(spec);
+							} else {
+								unsign.push(i);
+							}
+						})
+						// 如果删光了
+						if(unsign.length == this.unitTableList.length) {
+							return [];
+						}
+						exchange(temp, 0);
+						// 填充空位
+						if(unsign.length > 0) {
+							results.forEach(function(spec) {
+								unsign.forEach(function(pos) {
+									if(pos == 0) {
+										spec.unitList.unshift("-")
+									}
+									if(pos == 1) {
+										spec.unitList.splice(1, 0, "-")
+									}
+									if(pos == 2) {
+										spec.unitList.push("-")
+									}
+								})
+							})
+						}
+						return results;
+					}
+				}
+
+			});
+
+			function RndNum(n) {
+
+				var rnd = "";
+
+				for(var i = 0; i < n; i++)
+
+					rnd += Math.floor(Math.random() * 10);
+
+				return rnd;
+
+			}
+			//创键商品编码
+			function createCode() {
+				var mydate = new Date();
+				var mytime = mydate.getTime();
+				var rndNum = Math.floor(Math.random() * 10);
+				return "YH" + mytime + RndNum(6);
+			}
+			//生成二维数组
+			function doExchange(arr, depth) {
+				for(var i = 0; i < arr[depth].length; i++) {
+					result[depth] = arr[depth][i]
+					if(depth != arr.length - 1) {
+						doExchange(arr, depth + 1)
+					} else {
+						results.push(result.concat())
+					}
+				}
+			}
+		</script>
+
+	</body>
+
+</html>
